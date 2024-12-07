@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizQuest</title>
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #2b2b2b;
+      color: #d4d4d4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      width: 90%;
+      max-width: 600px;
+      background: #3a3a3a;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    .quiz-header {
+      padding: 20px;
+      text-align: center;
+    }
+    .quiz-header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #f5deb3;
+    }
+    .timer {
+      font-size: 18px;
+      color: #f5deb3;
+    }
+    .question {
+      margin: 20px 0;
+      font-size: 18px;
+      color: #e5e5e5;
+    }
+    .options {
+      list-style: none;
+      padding: 0;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      font-size: 16px;
+      background: #8b4513;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .options button:hover {
+      background: #a0522d;
+    }
+    .options .correct {
+      background: #4caf50 !important;
+    }
+    .options .incorrect {
+      background: #e74c3c !important;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+    }
+    .controls button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #6b4226;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .controls button:hover {
+      background: #8b4513;
+    }
+    .result {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    .result h2 {
+      font-size: 24px;
+      color: #f5deb3;
+    }
+    .result p {
+      font-size: 18px;
+      color: #d4d4d4;
+    }
+    .restart {
+      padding: 10px 20px;
+      background: #8b4513;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .restart:hover {
+      background: #a0522d;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <div id="quiz" class="quiz-header">
+      <h1>QuizQuest</h1>
+      <p class="timer">Time left: <span id="time">15</span>s</p>
+      <p class="question"></p>
+      <ul class="options"></ul>
+      <div class="controls">
+        <button id="pause">Pause</button>
+        <button id="continue" style="display: none;">Continue</button>
+      </div>
+    </div>
+    <div class="result">
+      <h2>Game Over!</h2>
+      <p>Your Score: <span id="score"></span></p>
+      <p>Correct Answers:</p>
+      <ul id="correct-answers"></ul>
+      <button class="restart" onclick="restartQuiz()">Restart</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: "Paris" },
+      { question: "Who wrote 'Hamlet'?", options: ["Charles Dickens", "William Shakespeare", "Mark Twain", "Jane Austen"], answer: "William Shakespeare" },
+      { question: "What type of animal is the 'Komodo Dragon'?", options: ["Lizard", "Snake", "Crocodile", "Monitor Lizard"], answer: "Monitor Lizard" },
+      { question: "What does 'HTTP' stand for?", options: ["HyperText Transfer Protocol", "HyperText Transmission Protocol", "HyperText Transfer Program", "HyperText Technology Protocol"], answer: "HyperText Transfer Protocol" },
+      { question: "Who was the first President of the United States?", options: ["Thomas Jefferson", "Abraham Lincoln", "George Washington", "John Adams"], answer: "George Washington" },
+      { question: "Which company manufactures the iPhone?", options: ["Samsung", "Nokia", "Apple", "Sony"], answer: "Apple" },
+      { question: "In what year did the first man land on the moon?", options: ["1965", "1969", "1971", "1975"], answer: "1969" },
+      { question: "What is the name of the ship that sank in 1912 after hitting an iceberg?", options: ["Titanic", "Lusitania", "Britannic", "Carpathia"], answer: "Titanic" },
+      { question: "How many bones are in the adult human body?", options: ["206", "208", "210", "212"], answer: "206" },
+      { question: "Which planet is known for its Great Red Spot?", options: ["Saturn", "Neptune", "Mars", "Jupiter"], answer: "Jupiter" },
+      { question: "What is the capital city of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Brisbane"], answer: "Canberra" },
+      { question: "Who invented the telephone?", options: ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "Michael Faraday"], answer: "Alexander Graham Bell" },
+      { question: "What is the tallest building in the world?", options: ["Shanghai Tower", "Burj Khalifa", "One World Trade Center", "Taipei 101"], answer: "Burj Khalifa" },
+      { question: "What is the primary ingredient in bread?", options: ["Rice", "Corn", "Wheat", "Barley"], answer: "Wheat" },
+      { question: "What is the smallest unit of an element?", options: ["Atom", "Molecule", "Proton", "Electron"], answer: "Atom" },
+      { question: "Which of the following is the largest ocean?", options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"], answer: "Pacific Ocean" },
+      { question: "What does the acronym 'RAM' stand for?", options: ["Random Access Memory", "Read Access Memory", "Rapid Access Memory", "Real-time Access Memory"], answer: "Random Access Memory" },
+      { question: "How many hearts does an octopus have?", options: ["1", "2", "3", "4"], answer: "3" },
+      { question: "What year did the Berlin Wall fall?", options: ["1987", "1989", "1991", "1993"], answer: "1989" },
+      { question: "Which country is the largest by land area?", options: ["China", "United States", "Russia", "Canada"], answer: "Russia" },
+      { question: "What element does 'O' represent on the periodic table?", options: ["Osmium", "Oxygen", "Olive", "Opium"], answer: "Oxygen" },
+      { question: "What is the capital of Italy?", options: ["Rome", "Venice", "Milan", "Florence"], answer: "Rome" },
+      { question: "What is the largest planet in our solar system?", options: ["Earth", "Mars", "Jupiter", "Saturn"], answer: "Jupiter" },
+      { question: "What is the primary language spoken in Brazil?", options: ["Spanish", "Portuguese", "French", "Italian"], answer: "Portuguese" },
+      { question: "Which famous scientist developed the theory of general relativity?", options: ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Stephen Hawking"], answer: "Albert Einstein" },
+      { question: "What is the chemical symbol for gold?", options: ["Au", "Ag", "Fe", "Hg"], answer: "Au" },
+      { question: "What does the term 'biodiversity' refer to?", options: ["Variety of life forms in a habitat", "Animal behavior", "The study of plants", "Genetic engineering"], answer: "Variety of life forms in a habitat" },
+      { question: "How many states are there in the United States?", options: ["50", "52", "48", "51"], answer: "50" },
+      { question: "What type of animal is a 'Blue Whale'?", options: ["Fish", "Mammal", "Reptile", "Amphibian"], answer: "Mammal" },
+      { question: "What year did World War II end?", options: ["1942", "1944", "1945", "1946"], answer: "1945" },
+      { question: "What is the name of the largest desert in the world?", options: ["Sahara", "Arabian", "Gobi", "Antarctica"], answer: "Antarctica" },
+      { question: "Which element has the atomic number 1?", options: ["Hydrogen", "Helium", "Oxygen", "Nitrogen"], answer: "Hydrogen" },
+      { question: "What is the capital city of Japan?", options: ["Tokyo", "Osaka", "Kyoto", "Hiroshima"], answer: "Tokyo" },
+      { question: "Who painted the Mona Lisa?", options: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Claude Monet"], answer: "Leonardo da Vinci" },
+      { question: "What is the tallest mountain in the world?", options: ["Mount Kilimanjaro", "Mount Everest", "Mount Denali", "Mount Fuji"], answer: "Mount Everest" },
+      { question: "Which bird is known for its beautiful tail feathers and courtship dance?", options: ["Peacock", "Sparrow", "Eagle", "Hawk"], answer: "Peacock" },
+      { question: "What is the largest organ in the human body?", options: ["Heart", "Liver", "Skin", "Brain"], answer: "Skin" },
+      { question: "Which element is commonly used in lightbulbs?", options: ["Neon", "Helium", "Tungsten", "Mercury"], answer: "Tungsten" },
+      { question: "What is the symbol for the chemical element silver?", options: ["Si", "Ag", "Au", "Hg"], answer: "Ag" },
+      { question: "Which animal is the largest living bird?", options: ["Eagle", "Penguin", "Ostrich", "Albatross"], answer: "Ostrich" },
+      { question: "What year was the Declaration of Independence signed?", options: ["1776", "1783", "1791", "1800"], answer: "1776" },
+      { question: "What is the longest river in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], answer: "Nile" },
+      { question: "Who is known as the 'Father of Computers'?", options: ["Charles Babbage", "Alan Turing", "John von Neumann", "Ada Lovelace"], answer: "Charles Babbage" },
+      { question: "What does the term 'eureka' mean?", options: ["I am sure", "I have found it", "I am confused", "I have lost it"], answer: "I have found it" },
+      { question: "What is the chemical formula for water?", options: ["H2O", "CO2", "O2", "HO2"], answer: "H2O" },
+      { question: "Which planet is known as the 'Red Planet'?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: "Mars" },
+      { question: "What type of animal is 'Harambe'?", options: ["Dog", "Cat", "Gorilla", "Lion"], answer: "Gorilla" },
+      { question: "What is the first element on the periodic table?", options: ["Helium", "Hydrogen", "Lithium", "Boron"], answer: "Hydrogen" },
+      { question: "What is the name of the wizarding school in the Harry Potter series?", options: ["Hogwarts", "Durmstrang", "Beauxbatons", "Ilvermorny"], answer: "Hogwarts" },
+      { question: "What instrument measures atmospheric pressure?", options: ["Thermometer", "Barometer", "Altimeter", "Anemometer"], answer: "Barometer" },
+      { question: "Which famous ship is known for its 'unsinkable' reputation?", options: ["Titanic", "Lusitania", "Bismarck", "Carpathia"], answer: "Titanic" }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLeft = 15;
+    let timer;
+    let paused = false;
+    let timePaused = 0;
+    const questionElement = document.querySelector(".question");
+    const optionsElement = document.querySelector(".options");
+    const timerElement = document.getElementById("time");
+    const quizElement = document.getElementById("quiz");
+    const resultElement = document.querySelector(".result");
+    const scoreElement = document.getElementById("score");
+    const correctAnswersElement = document.getElementById("correct-answers");
+    const pauseButton = document.getElementById("pause");
+    const continueButton = document.getElementById("continue");
+
+    function showQuestion() {
+      const questionData = questions[currentQuestion];
+      questionElement.textContent = `${currentQuestion + 1}. ${questionData.question}`;
+      optionsElement.innerHTML = "";
+      questionData.options.forEach(option => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.onclick = () => handleAnswer(option);
+        optionsElement.appendChild(button);
+      });
+      resetTimer();
+    }
+
+    function handleAnswer(selected) {
+      const correct = questions[currentQuestion].answer;
+      const buttons = optionsElement.querySelectorAll("button");
+
+      buttons.forEach(button => {
+        button.disabled = true;
+        if (button.textContent === correct) {
+          button.classList.add("correct");
+        } else if (button.textContent === selected && selected !== correct) {
+          button.classList.add("incorrect");
+        }
+      });
+
+      if (selected === correct) {
+        score++;
+      }
+
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        setTimeout(() => {
+          showQuestion();
+        }, 1000);
+      } else {
+        setTimeout(endQuiz, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      timeLeft = 15;
+      timerElement.textContent = timeLeft;
+      startTimer();
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        if (!paused) {
+          timeLeft--;
+          timerElement.textContent = timeLeft;
+          if (timeLeft === 0) {
+            clearInterval(timer);
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+              showQuestion();
+            } else {
+              endQuiz();
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    function endQuiz() {
+      quizElement.style.display = "none";
+      resultElement.style.display = "block";
+      scoreElement.textContent = score;
+      questions.forEach((q, index) => {
+        if (q.answer) {
+          const li = document.createElement("li");
+          li.textContent = `${index + 1}. ${q.question} Answer: ${q.answer}`;
+          correctAnswersElement.appendChild(li);
+        }
+      });
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      quizElement.style.display = "block";
+      resultElement.style.display = "none";
+      showQuestion();
+      resetTimer();
+      paused = false;
+      timePaused = 0;
+      pauseButton.style.display = "inline";
+      continueButton.style.display = "none";
+    }
+
+    pauseButton.onclick = () => {
+      if (!paused) {
+        paused = true;
+        clearInterval(timer);
+        timePaused = timeLeft;
+        pauseButton.style.display = "none";
+        continueButton.style.display = "inline";
+      }
+    };
+
+    continueButton.onclick = () => {
+      if (paused) {
+        paused = false;
+        timeLeft = timePaused;
+        timerElement.textContent = timeLeft;
+        startTimer();
+        pauseButton.style.display = "inline";
+        continueButton.style.display = "none";
+      }
+    };
+
+    showQuestion();
+  </script>
+</body>
+</html>
